@@ -1,0 +1,70 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff:
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.sqlite3
+db.sqlite3
+
+# Ignore .env file with environment variables
+.env
+.env.*
+
+# Django migrations
+*/migrations/*.py
+*/migrations/*.pyc
+!*/migrations/__init__.py
+
+# Static / media (keep source 'static/' tracked)
+/staticfiles/
+/media/
+
+# Model cache (Sentence-Transformers)
+.models/
+
+# Test and type caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Node (Tailwind app)
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Python versions
+.python-version
+
+# SQLite variants
+*.sqlite
+
+# VSCode settings
+.vscode/
+
+# PyCharm
+.idea/
+
+# Python virtual environment folders
+venv/
+env/
+ENV/
+.venv/
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# MacOS
+.DS_Store

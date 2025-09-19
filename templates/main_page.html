@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}NextTrack{% endblock %}
+
+{% block content %}
+  <div class="bg-white rounded-xl shadow p-6 space-y-6">
+    <div class="flex items-start justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold">Privacy-First Music Recommender</h1>
+            <p class="text-gray-600 mt-1">
+              Personalized track suggestions from public signals. No accounts, no listening history, no tracking.
+              Enter a seed as <span class="font-semibold">Artist - Track</span>, then tune the weights.
+            </p>
+          </div>
+    </div>
+
+    <form
+      id="recommend-form"
+      class="space-y-6"
+      hx-post="{% url 'recommend' %}"
+      hx-target="#results"
+      hx-swap="innerHTML"
+      hx-indicator="#loading"
+      hx-disabled-elt="button, input, select"
+    >
+      <!-- Input group: seed + button (one cohesive control) -->
+      <div class="flex flex-col md:flex-row gap-3 md:items-stretch">
+        <div class="flex-1">
+          <label for="{{ form.seed.id_for_label }}" class="sr-only">Seed</label>
+          <div class="inline-flex w-full rounded-lg shadow-sm ring-1 ring-gray-300 focus-within:ring-2 focus-within:ring-blue-500 overflow-hidden bg-white">
+            <input
+              type="text"
+              name="seed"
+              id="{{ form.seed.id_for_label }}"
+              placeholder="Travis Scott - my eyes"
+              class="w-full px-4 py-2 outline-none"
+            />
+            <button
+              type="submit"
+              class="relative inline-flex items-center justify-center bg-blue-600 text-white px-5 py-2 font-semibold hover:bg-blue-500 transition disabled:opacity-60"
+            >
+              <span>Recommend</span>
+              <!-- inline spinner shown during request -->
+              <span class="htmx-indicator absolute inset-y-0 right-3 my-auto hidden items-center gap-2">
+                <svg class="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"></path>
+                </svg>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tuning panel -->
+      <div class="rounded-lg border border-gray-200">
+        <div class="px-4 py-3 border-b">
+          <h2 class="font-semibold">Tuning</h2>
+          <p class="text-xs text-gray-500">Adjust how results are ranked. Weights are normalized automatically.</p>
+        </div>
+        <div class="p-4 grid md:grid-cols-2 gap-6">
+          <!-- α: semantic similarity -->
+          <div>
+            <div class="flex items-center justify-between">
+              <label class="block text-sm font-medium text-gray-700">
+                Semantic match (text/tag similarity)
+              </label>
+              <span id="alpha_val" class="text-xs rounded bg-gray-100 px-2 py-0.5">0.55</span>
+            </div>
+            <input
+              name="alpha_emb" type="range" min="0" max="1" step="0.01" value="0.55"
+              class="w-full accent-blue-600"
+              oninput="document.getElementById('alpha_val').textContent=this.value"
+            >
+            <p class="text-xs text-gray-500 mt-1">Higher → tracks whose descriptions and tags feel closer to your seed.</p>
+          </div>
+
+          <!-- β: tag overlap -->
+          <div>
+            <div class="flex items-center justify-between">
+              <label class="block text-sm font-medium text-gray-700">
+                Shared tags / genres
+              </label>
+              <span id="beta_val" class="text-xs rounded bg-gray-100 px-2 py-0.5">0.25</span>
+            </div>
+            <input
+              name="beta_tag" type="range" min="0" max="1" step="0.01" value="0.25"
+              class="w-full accent-blue-600"
+              oninput="document.getElementById('beta_val').textContent=this.value"
+            >
+            <p class="text-xs text-gray-500 mt-1">Higher → more overlap in Last.fm tags/genres.</p>
+          </div>
+
+          <!-- γ: popularity -->
+          <div>
+            <div class="flex items-center justify-between">
+              <label class="block text-sm font-medium text-gray-700">
+                Popularity (Spotify)
+              </label>
+              <span id="gamma_val" class="text-xs rounded bg-gray-100 px-2 py-0.5">0.12</span>
+            </div>
+            <input
+              name="gamma_pop" type="range" min="0" max="1" step="0.01" value="0.12"
+              class="w-full accent-blue-600"
+              oninput="document.getElementById('gamma_val').textContent=this.value"
+            >
+            <p class="text-xs text-gray-500 mt-1">Higher → push more popular tracks up the list.</p>
+          </div>
+
+          <!-- δ: recency -->
+          <div>
+            <div class="flex items-center justify-between">
+              <label class="block text-sm font-medium text-gray-700">
+                Recency (newer releases)
+              </label>
+              <span id="delta_val" class="text-xs rounded bg-gray-100 px-2 py-0.5">0.08</span>
+            </div>
+            <input
+              name="delta_fresh" type="range" min="0" max="1" step="0.01" value="0.08"
+              class="w-full accent-blue-600"
+              oninput="document.getElementById('delta_val').textContent=this.value"
+            >
+            <p class="text-xs text-gray-500 mt-1">Higher → favor newer releases in ranking.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- global loading (for non-button areas) -->
+      <div id="loading" class="htmx-indicator hidden items-center gap-2 text-gray-600">
+        <svg class="animate-spin h-5 w-5 text-blue-600" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"></path>
+        </svg>
+        <span>Fetching…</span>
+      </div>
+    </form>
+  </div>
+
+  <!-- Results (single-column) -->
+  <div id="results" class="mt-6 space-y-3">
+    <!-- HTMX injects track rows here -->
+  </div>
+{% endblock %}

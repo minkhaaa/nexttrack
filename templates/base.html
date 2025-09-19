@@ -1,0 +1,45 @@
+{% load static tailwind_tags %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}NextTrack{% endblock %}</title>
+    <script src="{% static 'htmx.min.js' %}" defer></script>
+    {% tailwind_css %}
+    <style>
+      /* HTMX indicator behavior: hidden by default, flex while requesting */
+      #loading { display:none; }
+      #loading.htmx-request { display:flex; }
+    </style>
+  </head>
+  <body
+    hx-boost="true"
+    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+    class="bg-gray-100 text-gray-900 min-h-screen flex flex-col"
+  >
+    <!-- Header -->
+    <header class="bg-white shadow-sm">
+      <div class="container mx-auto px-4 py-4">
+        <a hx-boost="false" href="{% url 'main_page' %}" class="text-xl font-bold">NextTrack</a>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="container mx-auto px-4 py-6 flex-1">
+      {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t">
+      <div class="container mx-auto px-4 py-4 text-sm text-gray-600 flex justify-between">
+        <span>© NextTrackAPI</span>
+        <nav class="flex gap-4">
+          <a href="#" class="hover:underline">Privacy</a>
+          <a href="#" class="hover:underline">Terms</a>
+          <a href="#" class="hover:underline">Contact</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>
